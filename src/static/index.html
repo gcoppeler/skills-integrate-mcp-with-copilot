@@ -13,8 +13,28 @@
     </header>
 
     <main>
+
       <section id="activities-container">
         <h3>Available Activities</h3>
+        <div id="filter-toolbar" style="margin-bottom: 18px;">
+          <label for="category-filter">Category:</label>
+          <select id="category-filter">
+            <option value="">All</option>
+            <option value="Academic">Academic</option>
+            <option value="Sports">Sports</option>
+            <option value="Arts">Arts</option>
+            <option value="Technology">Technology</option>
+          </select>
+          <label for="sort-filter" style="margin-left: 10px;">Sort by:</label>
+          <select id="sort-filter">
+            <option value="">Default</option>
+            <option value="name">Name</option>
+            <option value="time">Time</option>
+          </select>
+          <label for="search-filter" style="margin-left: 10px;">Search:</label>
+          <input type="text" id="search-filter" placeholder="Search activities..." />
+          <button id="clear-filters" type="button" style="margin-left: 10px;">Clear</button>
+        </div>
         <div id="activities-list">
           <!-- Activities will be loaded here -->
           <p>Loading activities...</p>

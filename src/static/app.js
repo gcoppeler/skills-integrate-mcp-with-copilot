@@ -3,15 +3,37 @@ document.addEventListener("DOMContentLoaded", () => {
   const activitySelect = document.getElementById("activity");
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
+  const categoryFilter = document.getElementById("category-filter");
+  const sortFilter = document.getElementById("sort-filter");
+  const searchFilter = document.getElementById("search-filter");
+  const clearFiltersBtn = document.getElementById("clear-filters");
 
-  // Function to fetch activities from API
+  // Helper to build query string
+  function buildQuery() {
+    const params = [];
+    if (categoryFilter && categoryFilter.value) {
+      params.push(`category=${encodeURIComponent(categoryFilter.value)}`);
+    }
+    if (sortFilter && sortFilter.value) {
+      params.push(`sort=${encodeURIComponent(sortFilter.value)}`);
+    }
+    if (searchFilter && searchFilter.value.trim()) {
+      params.push(`search=${encodeURIComponent(searchFilter.value.trim())}`);
+    }
+    return params.length ? `?${params.join("&")}` : "";
+  }
+
+  // Function to fetch activities from API with filters
   async function fetchActivities() {
     try {
-      const response = await fetch("/activities");
+      const response = await fetch(`/activities${buildQuery()}`);
       const activities = await response.json();
 
-      // Clear loading message
+      // Clear loading message and dropdown
       activitiesList.innerHTML = "";
+      if (activitySelect) {
+        activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
+      }
 
       // Populate activities list
       Object.entries(activities).forEach(([name, details]) => {
@@ -40,6 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
         activityCard.innerHTML = `
           <h4>${name}</h4>
           <p>${details.description}</p>
+          <p><strong>Category:</strong> ${details.category || "Uncategorized"}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
           <div class="participants-container">
@@ -50,10 +73,12 @@ document.addEventListener("DOMContentLoaded", () => {
         activitiesList.appendChild(activityCard);
 
         // Add option to select dropdown
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        activitySelect.appendChild(option);
+        if (activitySelect) {
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          activitySelect.appendChild(option);
+        }
       });
 
       // Add event listeners to delete buttons
@@ -153,6 +178,21 @@ document.addEventListener("DOMContentLoaded", () => {
       messageDiv.classList.remove("hidden");
       console.error("Error signing up:", error);
     }
+  });
+
+  // Filter event listeners
+  if (categoryFilter) categoryFilter.addEventListener("change", fetchActivities);
+  if (sortFilter) sortFilter.addEventListener("change", fetchActivities);
+  if (searchFilter) searchFilter.addEventListener("input", () => {
+    // Debounce search
+    clearTimeout(searchFilter._debounce);
+    searchFilter._debounce = setTimeout(fetchActivities, 300);
+  });
+  if (clearFiltersBtn) clearFiltersBtn.addEventListener("click", () => {
+    if (categoryFilter) categoryFilter.value = "";
+    if (sortFilter) sortFilter.value = "";
+    if (searchFilter) searchFilter.value = "";
+    fetchActivities();
   });
 
   // Initialize app
